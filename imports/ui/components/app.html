@@ -1,0 +1,15 @@
+<template name="app">
+  <div class="form-group">
+    <button class="btn btn-default" rv-on-click="addPost">Add Post</button>
+  </div>
+
+  <div class="row">
+    <div class="col-md-3 col-sm-6">
+      <ul class="list-group">
+        <li class="list-group-item" rv-each-post="data.posts">{post.text}</li>
+      </ul>
+    </div>
+  </div>
+
+  Test mode is {testMode}
+</template>

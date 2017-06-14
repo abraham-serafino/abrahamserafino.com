@@ -1,0 +1,31 @@
+{
+  "name": "abrahamserafino.com",
+  "private": true,
+  "scripts": {
+    "start": "meteor run --settings tests/meteor-settings.json",
+    "test": "protractor tests/conf.js"
+  },
+  "eslintConfig": {
+    "extends": "@meteorjs/eslint-config-meteor"
+  },
+  "dependencies": {
+    "babel-runtime": "^6.20.0",
+    "jasmine-spec-reporter": "4.1.0",
+    "lodash": "4.17.4",
+    "meteor-node-stubs": "~0.2.4",
+    "moment": "2.18.1",
+    "rivets": "0.9.6"
+  },
+  "devDependencies": {
+    "@meteorjs/eslint-config-meteor": "1.0.5",
+    "babel-eslint": "7.2.3",
+    "eslint": "4.0.0",
+    "eslint-config-airbnb": "15.0.1",
+    "eslint-config-airbnb-base": "11.2.0",
+    "eslint-import-resolver-meteor": "0.4.0",
+    "eslint-plugin-import": "2.3.0",
+    "eslint-plugin-jsx-a11y": "5.0.3",
+    "eslint-plugin-meteor": "4.0.1",
+    "eslint-plugin-react": "7.1.0"
+  }
+}
