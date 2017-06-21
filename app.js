@@ -1,5 +1,10 @@
-import Meteor from 'meteor';
+import { Meteor } from 'meteor/meteor';
 
-// eslint-disable no-undef
-isTest = Meteor.settings.public.isTest;
-// eslint-enable
+// eslint-disable-next-line no-undef
+BlogJS = {
+  isTest: Meteor.settings.public.isTest
+};
+
+if (BlogJS.isTest) {
+  global.CURRENT_USER_ID = 'TEST_USER';
+}
