@@ -9,7 +9,9 @@ function checkPermission({ collection, userId, operation, collectionName }) {
     const permissions = collection.findOne({ _id: 'PERMISSIONS' });
     const message = `UserId (${userId}) may not ${operation} on '${collectionName}'`;
 
-    if (!permissions || !permissions[userId] || !permissions[userId][operation]) {
+    if (!permissions || ((!permissions[userId] || !permissions[userId][operation]) &&
+        (!permissions._world_ || !permissions._world_[operation]))) {
+
       if (operation === 'find') {
         return false;
       }
@@ -31,9 +33,10 @@ function setupPublications(collection, collectionName) {
 
   Meteor.publish(collectionName, function() {
     if (checkCollectionPermissions.find(collection, CURRENT_USER_ID)) {
-      return collection.find({ _permissions: {
-        [CURRENT_USER_ID]: { find: true }
-      } });
+      return collection.find({ $or: [
+        { _permissions: { [CURRENT_USER_ID]: { find: true } } },
+        { _permissions: { _world_: { find: true } } }
+      ] });
     } else {
       return this.ready();
     }

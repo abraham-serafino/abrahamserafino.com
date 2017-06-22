@@ -9,7 +9,7 @@ export default function generateTestData() {
     TEST_USER: { ['change collection permissions']: true }
   });
 
-  Posts.addPermission('TEST_USER', 'find');
+  Posts.addPermission('_world_', 'find');
   Posts.addPermission('TEST_USER', 'insert');
   Posts.addPermission('TEST_USER', 'update');
   Posts.addPermission('TEST_USER', 'remove');
@@ -23,4 +23,8 @@ export default function generateTestData() {
       TEST_USER: { find: true }
     } });
   }
+
+  Posts.insert({ text: `Post 6`, _permissions: {
+    _world_: { find: true }
+  } });
 }
