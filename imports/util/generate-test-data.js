@@ -17,11 +17,11 @@ export default function generateTestData() {
     Posts.originalCollection.insert({
       text: `Post ${count}`,
       _permissions: {
-        _world_: { read: true }
+        TEST_USER: { read: true }
       } });
   }
 
-  for (let count = 3; count < 6; ++count) {
+  for (let count = 4; count < 7; ++count) {
     Posts.save({ text: `Post ${count}` });
   }
 }

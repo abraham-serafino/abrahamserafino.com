@@ -3,6 +3,8 @@ import { Meteor } from 'meteor/meteor';
 import merge from 'lodash.merge';
 import { Mongo } from 'meteor/mongo';
 
+let defaultPermissions = {};
+
 const checkCollectionPermissions = {};
 
 function initializePermissions(permissions, collectionName) {
@@ -85,13 +87,7 @@ function createMethods(collection, collectionName) {
       } else {
         if (!model._permissions) {
           collection.insert(merge(model, {
-            _permissions: {
-              [CURRENT_USER_ID]: {
-                read: true,
-                save: true,
-                remove: true
-              }
-            }
+            _permissions: defaultPermissions
           }), cb);
         } else {
           collection.insert(model);
@@ -107,8 +103,20 @@ function createApi(collection, collectionName) {
       Meteor.call(`${collectionName}.addPermission`, userId, operation);
     },
 
-    removePermission(userId, operation) {
-      Meteor.call(`${collectionName}.removePermission`, userId, operation);
+    defaultPermissions: {
+      [CURRENT_USER_ID]: {
+        read: true,
+        save: true,
+        remove: true
+      },
+
+      _world_: { read: true }
+    },
+
+    find: collection.find,
+
+    findAll() {
+      return collection.find();
     },
 
     findById(id) {
@@ -117,13 +125,12 @@ function createApi(collection, collectionName) {
 
     findOne: collection.findOne,
 
-    find: collection.find,
-
-    findAll() {
-      return collection.find();
+    removePermission(userId, operation) {
+      Meteor.call(`${collectionName}.removePermission`, userId, operation);
     },
 
     save(model, query, callback) {
+      defaultPermissions = this.defaultPermissions;
       Meteor.call(`${collectionName}.save`, model, query, callback);
     },
 
