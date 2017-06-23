@@ -14,7 +14,11 @@ export default function generateTestData() {
   Posts.addPermission('TEST_USER', 'remove');
 
   for (let count = 1; count < 4; ++count) {
-    Posts.originalCollection.insert({ text: `Post ${count}` });
+    Posts.originalCollection.insert({
+      text: `Post ${count}`,
+      _permissions: {
+        _world_: { read: true }
+      } });
   }
 
   for (let count = 3; count < 6; ++count) {
