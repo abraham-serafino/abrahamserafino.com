@@ -10,6 +10,7 @@
     "jasmine-spec-reporter": "4.1.0",
     "lodash": "4.17.4",
     "lodash.get": "4.4.2",
+    "lodash.merge": "4.6.0",
     "meteor-node-stubs": "~0.2.4",
     "moment": "2.18.1",
     "rivets": "0.9.6"
