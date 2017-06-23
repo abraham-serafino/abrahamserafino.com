@@ -34,15 +34,12 @@ function initializePermissions(permissions, collectionName) {
 function setupPublications(collection, collectionName) {
   Meteor.publish(collectionName, function() { // cannot be an arrow function
     if (checkCollectionPermissions.read(collection, CURRENT_USER_ID)) {
-      console.log(collection.find({ _permissions: { $ne: null } }).fetch()[0]._permissions[CURRENT_USER_ID].read);
-
       return collection.find({
         $or: [
-          { _permissions: { [CURRENT_USER_ID]: { read: true } } },
-          { _permissions: { _world_: { read: true } } }
+          { [`_permissions.${CURRENT_USER_ID}.read`]: true },
+          { '_permissions._world_.read': true }
         ]
       });
-
     } else {
       return this.ready();
     }
@@ -86,10 +83,8 @@ function createMethods(collection, collectionName) {
       if (existing) {
         collection.update(existing, model, cb);
       } else {
-        let modelToSave = model;
-
         if (!model._permissions) {
-          modelToSave = merge(model, {
+          collection.insert(merge(model, {
             _permissions: {
               [CURRENT_USER_ID]: {
                 read: true,
@@ -97,10 +92,10 @@ function createMethods(collection, collectionName) {
                 remove: true
               }
             }
-          });
+          }), cb);
+        } else {
+          collection.insert(model);
         }
-
-        collection.insert(modelToSave, cb);
       }
     }
   });
