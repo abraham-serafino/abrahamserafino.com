@@ -4,27 +4,20 @@ import { resetDatabase } from 'meteor/xolvio:cleaner';
 export default function generateTestData() {
   resetDatabase();
 
-  Posts.insert({
+  Posts.originalCollection.insert({
     _id: 'PERMISSIONS',
     TEST_USER: { ['change collection permissions']: true }
   });
 
-  Posts.addPermission('_world_', 'find');
-  Posts.addPermission('TEST_USER', 'insert');
-  Posts.addPermission('TEST_USER', 'update');
+  Posts.addPermission('_world_', 'read');
+  Posts.addPermission('TEST_USER', 'save');
   Posts.addPermission('TEST_USER', 'remove');
 
   for (let count = 1; count < 4; ++count) {
-    Posts.insert({ text: `Post ${count}` });
+    Posts.save({ text: `Post ${count}` });
   }
 
   for (let count = 3; count < 6; ++count) {
-    Posts.insert({ text: `Post ${count}`, _permissions: {
-      TEST_USER: { find: true }
-    } });
+    Posts.save({ text: `Post ${count}` });
   }
-
-  Posts.insert({ text: `Post 6`, _permissions: {
-    _world_: { find: true }
-  } });
 }
