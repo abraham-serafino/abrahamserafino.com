@@ -1,3 +1,4 @@
+import i18n from '../util/i18n';
 import { Posts } from '../api';
 import registerComponent from '../util/register-component';
 
@@ -5,6 +6,16 @@ import './app.scss';
 import './app.html';
 
 let count = 0;
+
+function errorCallback(err) {
+  if (err) {
+    alert(i18n(err.error, err.details));
+
+    if (err.reason) {
+      console.error(error.reason);
+    }
+  }
+}
 
 class App {
   testMode = BlogJS.isTest ? 'on' : 'off';
@@ -43,7 +54,7 @@ class App {
     switch (e.key) {
       case 'Enter':
         this.finishEditing(e, scope);
-        Posts.save(this.posts[index]);
+        Posts.save(this.posts[index], null, errorCallback);
         break;
 
       case 'Escape':
@@ -55,11 +66,11 @@ class App {
   };
 
   addPost = () => {
-    Posts.save({ text: `Post ${count++}` });
+    Posts.save({ text: `Post ${count++}` }, null, errorCallback);
   };
 
   removePost = (el, scope) => {
-    Posts.remove(this.posts[scope.index]);
+    Posts.remove(this.posts[scope.index], errorCallback);
   };
 }
 

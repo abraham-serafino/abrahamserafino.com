@@ -11,7 +11,6 @@ function initializePermissions(permissions, collectionName) {
   function checkPermission({ collection, userId, operation, collectionName }) {
     if (Meteor.isServer) {
       const permissions = collection.findOne({ _id: 'PERMISSIONS' });
-      const message = `UserId (${userId}) may not ${operation} on '${collectionName}'`;
 
       if (!permissions || ((!permissions[userId] || !permissions[userId][operation]) &&
           (!permissions._world_ || !permissions._world_[operation]))) {
@@ -20,7 +19,10 @@ function initializePermissions(permissions, collectionName) {
           return false;
         }
 
-        throw new Error(message);
+        const error = `collection.permission.denied`;
+        const reason = `UserId ${userId} lacks ${operation} permissions on ${collectionName}`;
+        const details = { operation, collection: collectionName };
+        throw new Meteor.Error(error, reason, details);
       }
 
       return true;
@@ -101,14 +103,22 @@ function createMethods(collection, collectionName) {
     [`${collectionName}.remove`](query) {
       checkCollectionPermissions.remove(collection, CURRENT_USER_ID);
 
-      collection.remove({
+      const permissionQuery = {
         $and: [query, {
           $or: [
             { [`_permissions.${CURRENT_USER_ID}.remove`]: true },
             { '_permissions._world_.remove': true }
           ]
         }]
-      });
+      };
+
+      if (!collection.findOne(permissionQuery)) {
+        const error = 'remove.permission.denied.query';
+        const reason = `UserId ${CURRENT_USER_ID} lacks remove permissions on document for query: ${JSON.stringify(query)}`;
+        throw new Meteor.Error(error, reason);
+      }
+
+      collection.remove(permissionQuery);
     }
   });
 
@@ -132,6 +142,10 @@ function createMethods(collection, collectionName) {
           }).fetch().length) {
 
         collection.remove({});
+      } else {
+        const error = 'removeAll.permission.denied';
+        const reason = `UserId: ${CURRENT_USER_ID} lacks permission to remove at least one item in ${collectionName}`;
+        throw new Meteor.Error(error, reason);
       }
     }
   });

@@ -1,13 +1,9 @@
 <template name="app">
-  <div class="form-group">
-    <button class="btn btn-default" rv-on-click="addPost">Add Post</button>
-  </div>
-
   <div class="row">
     <div class="col-md-3 col-sm-6">
       <ul class="list-group">
         <li class="list-group-item" rv-each-post="posts">
-            <span rv-on-click="editPost" rv-hide="post.editing">
+            <span rv-on-click="editPost" rv-hide="post.editing" class="post">
                 {post.text}
             </span>
 
@@ -19,9 +15,23 @@
                rv-on-blur="finishEditing"
             />
 
-            <span class="x-button" rv-on-click="removePost" rv-hide="post.editing">x</span>
+            <span
+                class="x-button"
+                rv-on-click="removePost"
+                rv-hide="post.editing"
+            >
+              x
+            </span>
         </li>
       </ul>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-2 col-sm-4"></div>
+
+    <div class="col-md-1 col-sm-2">
+        <button class="btn btn-default" rv-on-click="addPost">Add Post</button>
     </div>
   </div>
 
