@@ -1,6 +1,6 @@
 import { Promise } from 'meteor/promise';
+import { merge, get } from 'lodash';
 import { Meteor } from 'meteor/meteor';
-import merge from 'lodash.merge';
 import { Mongo } from 'meteor/mongo';
 
 let defaultPermissions = {};
@@ -85,7 +85,16 @@ function createMethods(collection, collectionName) {
       }
 
       if (existing) {
-        collection.update(existing, model);
+        if (get(existing, `_permissions[${CURRENT_USER_ID}].save`, null) ||
+            get(existing, '_permissions._world_.save', null)) {
+
+          collection.update(existing, model);
+        } else {
+          const error = 'save.permission.denied';
+          const reason = `UserId ${CURRENT_USER_ID} lacks save permissions on document: ${JSON.stringify(existing)}`;
+
+          throw new Meteor.Error(error, reason);
+        }
       } else {
         if (!model._permissions) {
           collection.insert(merge(model, {
@@ -113,7 +122,7 @@ function createMethods(collection, collectionName) {
       };
 
       if (!collection.findOne(permissionQuery)) {
-        const error = 'remove.permission.denied.query';
+        const error = 'remove.permission.denied';
         const reason = `UserId ${CURRENT_USER_ID} lacks remove permissions on document for query: ${JSON.stringify(query)}`;
         throw new Meteor.Error(error, reason);
       }

@@ -1,3 +1,5 @@
+import { get } from 'lodash';
+
 import i18n from '../util/i18n';
 import { Posts } from '../api';
 import registerComponent from '../util/register-component';
@@ -36,9 +38,15 @@ class App {
     }
 
     this.editing = index;
-    this.posts[index].editing = true;
 
-    document.querySelectorAll('input.post-editor')[index].focus();
+    const currentPost = this.posts[index];
+
+    if (get(currentPost, `_permissions[${CURRENT_USER_ID}].save`, null) ||
+        get(currentPost, '_permissions._world_.save', null)) {
+
+      currentPost.editing = true;
+      document.querySelectorAll('input.post-editor')[index].focus();
+    }
   };
 
   finishEditing = (e, scope) => {
