@@ -4,8 +4,8 @@ import { resetDatabase } from 'meteor/xolvio:cleaner';
 export default function generateTestData() {
   resetDatabase();
 
-  Posts.originalCollection.insert({
-    _id: 'PERMISSIONS',
+  Posts.permissionsCollection.insert({
+    collection: 'test-posts',
     TEST_USER: { ['change collection permissions']: true }
   });
 

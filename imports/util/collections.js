@@ -1,16 +1,17 @@
-import { Promise } from 'meteor/promise';
 import { merge, get } from 'lodash';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
+import { SimpleSchema } from 'meteor/aldeed:simple-schema';
+import { Promise } from 'meteor/promise';
 
 let defaultPermissions = {};
-
-const checkCollectionPermissions = {};
+let permissionsCollection = new Mongo.Collection('collection-permissions');
+const checkPermissions = {};
 
 function initializePermissions(permissions, collectionName) {
-  function checkPermission({ collection, userId, operation, collectionName }) {
+  function checkPermission({ userId, operation, collectionName }) {
     if (Meteor.isServer) {
-      const permissions = collection.findOne({ _id: 'PERMISSIONS' });
+      const permissions = permissionsCollection.findOne({ collection: collectionName });
 
       if (!permissions || ((!permissions[userId] || !permissions[userId][operation]) &&
           (!permissions._world_ || !permissions._world_[operation]))) {
@@ -30,14 +31,14 @@ function initializePermissions(permissions, collectionName) {
   }
 
   permissions.forEach(operation => {
-    checkCollectionPermissions[operation] = (collection, userId) =>
-        checkPermission({ collection, userId, operation, collectionName });
+    checkPermissions[operation] = userId =>
+        checkPermission({ userId, operation, collectionName });
   });
 }
 
 function setupPublications(collection, collectionName) {
   Meteor.publish(collectionName, function() { // cannot be an arrow function
-    if (checkCollectionPermissions.read(collection, CURRENT_USER_ID)) {
+    if (checkPermissions.read(CURRENT_USER_ID)) {
       return collection.find({
         $or: [
           { [`_permissions.${CURRENT_USER_ID}.read`]: true },
@@ -54,8 +55,8 @@ function createMethods(collection, collectionName) {
   // add permissions for a user
   Meteor.methods({
     [`${collectionName}.addPermission`](userId, operation) {
-      checkCollectionPermissions['change collection permissions'](collection, CURRENT_USER_ID);
-      collection.update({_id: 'PERMISSIONS'}, {
+      checkPermissions['change collection permissions'](CURRENT_USER_ID);
+      permissionsCollection.update({ collection: collectionName }, {
         $set: { [`${userId}.${operation}`]: true }
       }, { upsert: true });
     }
@@ -64,8 +65,8 @@ function createMethods(collection, collectionName) {
   // remove permissions for a user
   Meteor.methods({
     [`${collectionName}.removePermission`](userId, operation) {
-      checkCollectionPermissions['change collection permissions'](collection, CURRENT_USER_ID);
-      collection.update({ _id: 'PERMISSIONS' }, {
+      checkPermissions['change collection permissions'](CURRENT_USER_ID);
+      permissionsCollection.update({ collection: collectionName }, {
         $unset: { [`${userId}.${operation}`]: false }
       });
     }
@@ -74,7 +75,9 @@ function createMethods(collection, collectionName) {
   // upsert a document with permission metadata
   Meteor.methods({
     [`${collectionName}.save`](model, query) {
-      checkCollectionPermissions.save(collection, CURRENT_USER_ID);
+      collection.schema.clean(model);
+      collection.schema.validate(model);
+      checkPermissions.save(CURRENT_USER_ID);
 
       let existing = null;
 
@@ -88,7 +91,7 @@ function createMethods(collection, collectionName) {
         if (get(existing, `_permissions[${CURRENT_USER_ID}].save`, null) ||
             get(existing, '_permissions._world_.save', null)) {
 
-          collection.update(existing, model);
+          collection.update(existing, model, { validate: false });
         } else {
           const error = 'save.permission.denied';
           const reason = `UserId ${CURRENT_USER_ID} lacks save permissions on document: ${JSON.stringify(existing)}`;
@@ -96,13 +99,11 @@ function createMethods(collection, collectionName) {
           throw new Meteor.Error(error, reason);
         }
       } else {
-        if (!model._permissions) {
-          collection.insert(merge(model, {
-            _permissions: defaultPermissions
-          }));
-        } else {
-          collection.insert(model);
-        }
+        let toInsert = (!model._permissions) ?
+            merge(model, { _permissions: defaultPermissions }) :
+            model;
+
+          collection.insert(toInsert);
       }
     }
   });
@@ -110,7 +111,7 @@ function createMethods(collection, collectionName) {
   // remove any document(s) matching the query
   Meteor.methods({
     [`${collectionName}.remove`](query) {
-      checkCollectionPermissions.remove(collection, CURRENT_USER_ID);
+      checkPermissions.remove(CURRENT_USER_ID);
 
       const permissionQuery = {
         $and: [query, {
@@ -134,7 +135,7 @@ function createMethods(collection, collectionName) {
   // remove all documents from the collection
   Meteor.methods({
     [`${collectionName}.removeAll`]() {
-      checkCollectionPermissions.remove(collection, CURRENT_USER_ID);
+      checkPermissions.remove(CURRENT_USER_ID);
 
       if (!collection.find({
             $and: [
@@ -205,21 +206,18 @@ function createApi(collection, collectionName) {
       Meteor.call(`${collectionName}.save`, model, query, callback);
     },
 
-    originalCollection: collection
+    originalCollection: collection,
+
+    permissionsCollection
   }
 }
 
 function createCollection(name, schema) {
   const collection = new Mongo.Collection(name);
 
-  /**
-   * @todo - validate against the schema in save()
-   * use aldeed:simple-schema or joi?
-   * both may be possible if they use a similar validate() method
-   */
-  collection.schema = schema;
-
-  collection.removeAll = () => collection.remove({});
+  if (schema) {
+    collection.schema = new SimpleSchema(schema);
+  }
 
   initializePermissions([
     'read',

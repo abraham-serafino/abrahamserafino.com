@@ -1,8 +1,8 @@
 const messages = {
-  'collection.permission.denied': 'You do not have permission to perform \':operation\' on collection \':collection\'',
-  'remove.permission.denied': 'You do not have permission to remove this item.',
-  'removeAll.permission.denied': 'You do not have permission to remove all items.',
-  'save.permission.denied': 'You do not have permission to edit this item.'
+  'collection.permission.denied': 'You do not have \':operation\' rights on \':collection\'',
+  'remove.permission.denied': 'You do not have \'remove\' permissions for this item.',
+  'removeAll.permission.denied': 'You do not have \'remove\' permissions for all items.',
+  'save.permission.denied': 'You do not have \'save\' permissions for this item.'
 };
 
 function i18n(key, model) {
