@@ -1,3 +1,4 @@
+import Joi from 'joi';
 import { merge, get } from 'lodash';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
@@ -75,8 +76,12 @@ function createMethods(collection, collectionName) {
   // upsert a document with permission metadata
   Meteor.methods({
     [`${collectionName}.save`](model, query) {
-      collection.schema.clean(model);
-      collection.schema.validate(model);
+      const { error } = collection.schema.validate(model);
+
+      if (error) {
+        throw new Meteor.Error(error.details[0].message);
+      }
+
       checkPermissions.save(CURRENT_USER_ID);
 
       let existing = null;
@@ -216,7 +221,7 @@ function createCollection(name, schema) {
   const collection = new Mongo.Collection(name);
 
   if (schema) {
-    collection.schema = new SimpleSchema(schema);
+    collection.schema = Joi.compile(schema);
   }
 
   initializePermissions([

@@ -3,13 +3,17 @@
     <div class="col-md-3 col-sm-6">
       <ul class="list-group">
         <li class="list-group-item" rv-each-post="posts">
-            <span rv-on-click="editPost" rv-hide="post.editing" class="post">
-                {post.text}
+            <span
+                rv-on-click="editPost"
+                rv-hide="isEditing | call editingIndex index"
+                class="post"
+            >
+              {post.text}
             </span>
 
             <input
                class="form-control post-editor"
-               rv-show="post.editing"
+               rv-show="isEditing | call editingIndex index"
                rv-value="post.text"
                rv-on-keyup="onChangePost"
                rv-on-blur="finishEditing"
@@ -18,7 +22,7 @@
             <span
                 class="x-button"
                 rv-on-click="removePost"
-                rv-hide="post.editing"
+                rv-hide="isEditing | call editingIndex index"
             >
               x
             </span>
@@ -35,5 +39,5 @@
     </div>
   </div>
 
-  Test mode is {testMode}
+  Test mode is {testMode}<br />
 </template>

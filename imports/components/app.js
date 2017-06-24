@@ -22,7 +22,7 @@ function errorCallback(err) {
 class App {
   testMode = BlogJS.isTest ? 'on' : 'off';
   posts = [];
-  editing = -1;
+  editingIndex = -1;
 
   constructor() {
     Tracker.autorun(() => {
@@ -30,56 +30,50 @@ class App {
     });
   }
 
-  editPost = (e, scope) => {
+  editPost(event, scope) {
     const { index } = scope;
-
-    if (this.editing > -1) {
-      this.posts[this.editing].editing = undefined;
-    }
-
-    this.editing = index;
-
-    const currentPost = this.posts[index];
+    const currentPost = scope.posts[index];
 
     if (get(currentPost, `_permissions[${CURRENT_USER_ID}].save`, null) ||
         get(currentPost, '_permissions._world_.save', null)) {
 
-      currentPost.editing = true;
+      scope.editingIndex = index;
       document.querySelectorAll('input.post-editor')[index].focus();
     }
-  };
+  }
 
-  finishEditing = (e, scope) => {
+  finishEditing(event, scope) {
+    scope.editingIndex = -1;
+  }
+
+  isEditing(editingIndex, index) {
+    return editingIndex === index;
+  }
+
+  onChangePost(event, scope) {
     const { index } = scope;
 
-    this.editing = -1;
-    this.posts[index].editing = undefined;
-  };
-
-  onChangePost = (e, scope) => {
-    const { index } = scope;
-
-    switch (e.key) {
+    switch (event.key) {
       case 'Enter':
-        this.finishEditing(e, scope);
-        Posts.save(this.posts[index], null, errorCallback);
+        scope.finishEditing(event, scope);
+        Posts.save(scope.posts[index], null, errorCallback);
         break;
 
       case 'Escape':
-        this.finishEditing(e, scope);
+        scope.finishEditing(event, scope);
         break;
 
       default: // do nothing
     }
-  };
+  }
 
-  addPost = () => {
+  addPost() {
     Posts.save({ text: `Post ${count++}` }, null, errorCallback);
-  };
+  }
 
-  removePost = (el, scope) => {
-    Posts.remove(this.posts[scope.index], errorCallback);
-  };
+  removePost(event, scope) {
+    Posts.remove(scope.posts[scope.index], errorCallback);
+  }
 }
 
 registerComponent('app', App);
