@@ -83,7 +83,7 @@ function createMethods(collection, collectionName) {
       }
 
       if (existing) {
-        collection.update(existing, model, cb);
+        collection.update(existing, model);
       } else {
         if (!model._permissions) {
           collection.insert(merge(model, {

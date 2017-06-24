@@ -18,7 +18,8 @@ export default function generateTestData() {
       text: `Post ${count}`,
       _permissions: {
         TEST_USER: { read: true, remove: false }
-      } });
+      }
+    });
   }
 
   for (let count = 4; count < 7; ++count) {
