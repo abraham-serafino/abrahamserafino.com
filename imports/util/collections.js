@@ -2,8 +2,6 @@ import Joi from 'joi';
 import { merge, get } from 'lodash';
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
-import { SimpleSchema } from 'meteor/aldeed:simple-schema';
-import { Promise } from 'meteor/promise';
 
 let defaultPermissions = {};
 let permissionsCollection = new Mongo.Collection('collection-permissions');
