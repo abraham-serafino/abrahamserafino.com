@@ -17,7 +17,7 @@ export default function generateTestData() {
     Posts.originalCollection.insert({
       text: `Post ${count}`,
       _permissions: {
-        TEST_USER: { read: true }
+        TEST_USER: { read: true, remove: false }
       } });
   }
 

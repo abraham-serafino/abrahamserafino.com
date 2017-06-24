@@ -2,6 +2,7 @@ import rivets from 'rivets';
 
 import { Posts } from '../api';
 
+import './app.scss';
 import './app.html';
 
 let count = 0;
@@ -14,6 +15,10 @@ rivets.components['app'] = {
 
       addPost() {
         Posts.save({ text: `Post ${count++}` });
+      },
+
+      removePost(el, scope) {
+        Posts.remove(model.posts[scope.index]);
       },
 
       posts: []
